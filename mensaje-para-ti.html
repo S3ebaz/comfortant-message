@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Para ti, hoy</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;1,9..144,400;1,9..144,500&family=Atkinson+Hyperlegible:wght@400;700&family=Caveat:wght@600&display=swap');
+
+  :root{
+    --sky-top:#EAF0EC;
+    --sky-bottom:#D9E5E4;
+    --paper:#FBF6EC;
+    --paper-2:#F2E8D6;
+    --paper-3:#E9DFC8;
+    --ink:#33424A;
+    --ink-soft:#5B6B66;
+    --marigold:#E3A73B;
+    --rose:#C97B84;
+    --sage:#7C9885;
+    --ring: rgba(51,66,74,0.45);
+  }
+
+  *{ box-sizing:border-box; }
+
+  body{
+    margin:0;
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:
+      radial-gradient(60% 50% at 50% 0%, rgba(255,255,255,0.55), transparent 60%),
+      linear-gradient(180deg, var(--sky-top) 0%, var(--sky-bottom) 100%);
+    font-family:'Atkinson Hyperlegible', sans-serif;
+    color:var(--ink);
+    overflow-x:hidden;
+    position:relative;
+    padding:32px 18px;
+  }
+
+  /* ambient light motes */
+  .motes span{
+    position:fixed;
+    border-radius:50%;
+    background:rgba(255,255,255,0.55);
+    filter:blur(1px);
+    animation:drift 14s ease-in-out infinite;
+    pointer-events:none;
+  }
+  .motes span:nth-child(1){ width:6px;height:6px; left:12%; top:20%; animation-duration:16s; }
+  .motes span:nth-child(2){ width:4px;height:4px; left:80%; top:30%; animation-duration:12s; animation-delay:-3s;}
+  .motes span:nth-child(3){ width:5px;height:5px; left:70%; top:70%; animation-duration:18s; animation-delay:-6s;}
+  .motes span:nth-child(4){ width:3px;height:3px; left:25%; top:75%; animation-duration:10s; animation-delay:-2s;}
+  .motes span:nth-child(5){ width:4px;height:4px; left:50%; top:12%; animation-duration:15s; animation-delay:-8s;}
+
+  @keyframes drift{
+    0%,100%{ transform:translateY(0) translateX(0); opacity:.5; }
+    50%{ transform:translateY(-22px) translateX(10px); opacity:1; }
+  }
+
+  main{
+    width:100%;
+    max-width:460px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    z-index:1;
+  }
+
+  /* toggle pills */
+  .toggle-row{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+    justify-content:center;
+    margin-bottom:34px;
+  }
+  .toggle-pill{
+    font-family:'Atkinson Hyperlegible', sans-serif;
+    font-size:13.5px;
+    font-weight:700;
+    letter-spacing:.02em;
+    padding:9px 16px;
+    border-radius:999px;
+    border:1.5px solid rgba(51,66,74,0.18);
+    background:rgba(255,255,255,0.5);
+    color:var(--ink-soft);
+    cursor:pointer;
+    transition:background .25s ease, color .25s ease, border-color .25s ease, transform .15s ease;
+  }
+  .toggle-pill:hover{ transform:translateY(-1px); }
+  .toggle-pill:focus-visible{ outline:3px solid var(--ring); outline-offset:2px; }
+  .toggle-pill.active{
+    background:var(--marigold);
+    border-color:var(--marigold);
+    color:#3A2C0F;
+  }
+
+  /* note stack */
+  .note-wrap{
+    position:relative;
+    width:100%;
+  }
+  .stack{
+    position:absolute;
+    inset:0;
+    border-radius:6px;
+    background:var(--paper-2);
+    box-shadow:0 12px 26px rgba(51,66,74,0.12);
+  }
+  .stack.s1{ transform:rotate(2.6deg) translateY(6px); background:var(--paper-2); }
+  .stack.s2{ transform:rotate(-3.4deg) translateY(10px); background:var(--paper-3); }
+
+  .note{
+    position:relative;
+    background:var(--paper);
+    border-radius:6px;
+    padding:40px 34px 30px;
+    transform:rotate(-1.1deg);
+    box-shadow:
+      0 2px 4px rgba(51,66,74,0.06),
+      0 18px 34px rgba(51,66,74,0.16);
+    opacity:0;
+    animation:unfold .85s cubic-bezier(.2,.8,.2,1) forwards;
+  }
+
+  @keyframes unfold{
+    0%{ opacity:0; transform:rotate(-6deg) scale(.92) translateY(10px); }
+    100%{ opacity:1; transform:rotate(-1.1deg) scale(1) translateY(0); }
+  }
+
+  .tape{
+    position:absolute;
+    top:-16px;
+    left:26px;
+    font-family:'Caveat', cursive;
+    font-size:17px;
+    font-weight:600;
+    color:#7A5A20;
+    background:rgba(227,167,59,0.55);
+    padding:3px 16px 5px;
+    transform:rotate(-6deg);
+    box-shadow:0 2px 4px rgba(0,0,0,0.08);
+    z-index:2;
+  }
+
+  .date-stamp{
+    position:absolute;
+    top:16px;
+    right:20px;
+    font-size:10.5px;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+    opacity:.65;
+  }
+
+  .message{
+    font-family:'Fraunces', serif;
+    font-style:italic;
+    font-optical-sizing:auto;
+    font-weight:450;
+    font-size:clamp(20px, 4.6vw, 25px);
+    line-height:1.5;
+    margin:6px 0 22px;
+    min-height:150px;
+    display:flex;
+    align-items:center;
+    transition:opacity .35s ease;
+  }
+
+  .note-rule{
+    height:1px;
+    background:linear-gradient(90deg, transparent, rgba(51,66,74,0.25), transparent);
+    margin-bottom:14px;
+  }
+
+  .note-foot{
+    font-family:'Atkinson Hyperlegible', sans-serif;
+    font-size:12.5px;
+    color:var(--ink-soft);
+    margin:0;
+    letter-spacing:.01em;
+  }
+
+  .refresh-btn{
+    margin-top:34px;
+    display:inline-flex;
+    align-items:center;
+    gap:9px;
+    background:transparent;
+    border:1.5px solid rgba(51,66,74,0.28);
+    color:var(--ink);
+    font-family:'Atkinson Hyperlegible', sans-serif;
+    font-weight:700;
+    font-size:14.5px;
+    padding:12px 22px;
+    border-radius:999px;
+    cursor:pointer;
+    transition:background .25s ease, transform .15s ease, border-color .25s ease;
+  }
+  .refresh-btn:hover{ background:rgba(124,152,133,0.14); border-color:var(--sage); transform:translateY(-1px); }
+  .refresh-btn:focus-visible{ outline:3px solid var(--ring); outline-offset:2px; }
+  .refresh-btn svg{ width:15px; height:15px; transition:transform .5s ease; }
+  .refresh-btn.spin svg{ transform:rotate(180deg); }
+
+  .site-foot{
+    margin-top:38px;
+    font-size:12px;
+    color:var(--ink-soft);
+    opacity:.7;
+    text-align:center;
+    max-width:320px;
+    line-height:1.5;
+  }
+
+  @media (max-width:420px){
+    .note{ padding:34px 22px 24px; }
+    .message{ min-height:170px; }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .motes span{ animation:none; }
+    .note{ animation:none; opacity:1; transform:rotate(-1.1deg); }
+    .refresh-btn svg{ transition:none; }
+  }
+</style>
+</head>
+<body>
+
+  <div class="motes" aria-hidden="true">
+    <span></span><span></span><span></span><span></span><span></span>
+  </div>
+
+  <main>
+    <div class="toggle-row" role="group" aria-label="Elige para quién es el mensaje">
+      <button class="toggle-pill active" data-pool="general" type="button">Para cualquiera</button>
+      <button class="toggle-pill" data-pool="estudiante" type="button">Para ti, estudiante</button>
+      <button class="toggle-pill" data-pool="maestro" type="button">Para ti, maestro/a</button>
+    </div>
+
+    <div class="note-wrap">
+      <div class="stack s1" aria-hidden="true"></div>
+      <div class="stack s2" aria-hidden="true"></div>
+      <article class="note" id="note">
+        <span class="tape">para ti</span>
+        <span class="date-stamp" id="dateStamp"></span>
+        <p class="message" id="message" aria-live="polite"></p>
+        <div class="note-rule" aria-hidden="true"></div>
+        <p class="note-foot">respira un momento. esto también es parte del camino.</p>
+      </article>
+    </div>
+
+    <button class="refresh-btn" id="refreshBtn" type="button">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>
+      otro mensaje
+    </button>
+
+    <p class="site-foot">Hecho con cariño para cualquier salón, en cualquier día difícil.</p>
+  </main>
+
+<script>
+  const messages = {
+    general: [
+      "Hoy no tienes que tenerlo todo resuelto. Con hacer lo que puedas, ya es suficiente.",
+      "Si este día ha sido difícil, no significa que tú lo seas. Solo significa que fue un día difícil.",
+      "Nadie ve todo lo que cargas, pero aquí alguien te lo reconoce: estás haciendo más de lo que crees.",
+      "Puedes parar un momento a respirar. No pasa nada por hacer una pausa antes de seguir.",
+      "Los errores de hoy no borran lo que ya construiste antes.",
+      "A veces cuidar es simplemente seguir intentándolo un día más. Eso también cuenta.",
+      "No estás solo o sola en esto, aunque a veces lo parezca desde donde estás sentado o sentada.",
+      "Mereces la misma paciencia que le darías a alguien que quieres."
+    ],
+    estudiante: [
+      "Una mala nota no mide lo que vales. Mide un examen, en un día, sobre un tema. Nada más.",
+      "Está bien no entender todo a la primera. Así se ve aprender, aunque el salón parezca decir lo contrario.",
+      "Si hoy solo pudiste sobrevivir el día, también cuenta como un logro.",
+      "Compararte con quien se sienta a tu lado nunca te va a decir quién eres tú.",
+      "Pedir ayuda no es debilidad. Es de las cosas más valientes que puedes hacer en un salón lleno de gente que también finge tenerlo todo claro.",
+      "Vas a cambiar mucho en los próximos años. Está bien todavía no saber en quién te vas a convertir.",
+      "En el recreo, en el pasillo, al salir del salón: en cualquiera de esos momentos puedes soltar el aire que has estado aguantando.",
+      "Lo que sientes hoy en la escuela no va a ser lo que sientas toda tu vida. Esto también se mueve."
+    ],
+    maestro: [
+      "Hay estudiantes que hoy no te lo van a decir, pero recuerdan lo que hiciste por ellos, aunque haya sido pequeño.",
+      "No puedes llegar a todos todos los días, y eso no te hace menos buen maestro o buena maestra.",
+      "El cansancio que sientes es real, y ningún «gracias por tu vocación» lo compensa del todo. Mereces que también te cuiden a ti.",
+      "Preparaste esa clase con cuidado, aunque hoy nadie lo haya notado. Tú sí lo sabes.",
+      "A veces el mayor impacto que tienes no está en la lección, sino en haberte quedado un minuto más a escuchar.",
+      "No necesitas tener todas las respuestas para ser alguien en quien confían.",
+      "Un día difícil frente al salón no borra los años que llevas sosteniendo a otros.",
+      "Está bien cerrar la puerta del salón al final del día y, por un momento, no ser el maestro o la maestra de nadie. Solo tú."
+    ]
+  };
+
+  const messageEl = document.getElementById('message');
+  const noteEl = document.getElementById('note');
+  const refreshBtn = document.getElementById('refreshBtn');
+  const pills = document.querySelectorAll('.toggle-pill');
+  const dateStamp = document.getElementById('dateStamp');
+
+  let currentPool = 'general';
+
+  // Baraja por categoría: reparte los mensajes en orden aleatorio y no
+  // repite ninguno hasta haber mostrado todos; al agotarse, vuelve a
+  // barajar evitando que el primero de la nueva vuelta coincida con el
+  // último mostrado. Usa localStorage cuando está disponible (para que
+  // también recuerde al recargar la página) y cae a memoria si no.
+  const storageAvailable = (() => {
+    try {
+      const k = '__test__';
+      localStorage.setItem(k, '1');
+      localStorage.removeItem(k);
+      return true;
+    } catch (e) { return false; }
+  })();
+
+  const memoryDecks = {};
+  const memoryLast = {};
+
+  function shuffledIndices(n){
+    const arr = Array.from({ length: n }, (_, i) => i);
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+
+  function getDeck(pool){
+    if (storageAvailable) {
+      try {
+        const raw = localStorage.getItem('deck_' + pool);
+        if (raw) {
+          const deck = JSON.parse(raw);
+          if (Array.isArray(deck) && deck.length) return deck;
+        }
+      } catch (e) {}
+    } else if (memoryDecks[pool] && memoryDecks[pool].length) {
+      return memoryDecks[pool];
+    }
+    const deck = shuffledIndices(messages[pool].length);
+    saveDeck(pool, deck);
+    return deck;
+  }
+
+  function saveDeck(pool, deck){
+    if (storageAvailable) {
+      try { localStorage.setItem('deck_' + pool, JSON.stringify(deck)); } catch (e) {}
+    } else {
+      memoryDecks[pool] = deck;
+    }
+  }
+
+  function getLast(pool){
+    if (storageAvailable) {
+      try { return localStorage.getItem('last_' + pool); } catch (e) { return null; }
+    }
+    return memoryLast[pool] ?? null;
+  }
+
+  function setLast(pool, idx){
+    if (storageAvailable) {
+      try { localStorage.setItem('last_' + pool, idx); } catch (e) {}
+    } else {
+      memoryLast[pool] = idx;
+    }
+  }
+
+  function nextMessage(pool){
+    let deck = getDeck(pool);
+    const last = getLast(pool);
+    if (deck.length > 1 && String(deck[0]) === String(last)) {
+      [deck[0], deck[1]] = [deck[1], deck[0]];
+    }
+    const idx = deck.shift();
+    saveDeck(pool, deck);
+    setLast(pool, idx);
+    return messages[pool][idx];
+  }
+
+  function showMessage(pool, animateCard){
+    messageEl.style.opacity = 0;
+    setTimeout(() => {
+      messageEl.textContent = nextMessage(pool);
+      messageEl.style.opacity = 1;
+    }, 220);
+
+    if(animateCard){
+      const angle = (Math.random() * 3 - 1.5).toFixed(2);
+      noteEl.style.transition = 'transform .4s ease';
+      noteEl.style.transform = `rotate(${angle}deg)`;
+    }
+  }
+
+  pills.forEach(btn => {
+    btn.addEventListener('click', () => {
+      pills.forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      currentPool = btn.dataset.pool;
+      showMessage(currentPool, true);
+    });
+  });
+
+  refreshBtn.addEventListener('click', () => {
+    refreshBtn.classList.add('spin');
+    showMessage(currentPool, true);
+    setTimeout(() => refreshBtn.classList.remove('spin'), 500);
+  });
+
+  try{
+    dateStamp.textContent = new Date().toLocaleDateString('es-ES', { day:'numeric', month:'long' });
+  }catch(e){ dateStamp.remove(); }
+
+  // mensaje al entrar: siempre distinto al último que se mostró
+  messageEl.textContent = nextMessage(currentPool);
+  messageEl.style.opacity = 1;
+</script>
+
+</body>
+</html>
