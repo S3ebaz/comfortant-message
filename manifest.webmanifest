@@ -1,0 +1,19 @@
+{
+  "name": "Para ti, hoy",
+  "short_name": "Para ti",
+  "description": "Una nota reconfortante para cualquier salón, con o sin conexión.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#EAF0EC",
+  "theme_color": "#EAF0EC",
+  "lang": "es",
+  "icons": [
+    {
+      "src": "icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
