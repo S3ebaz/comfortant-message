@@ -4,6 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Para ti, hoy</title>
+<meta name="theme-color" content="#EAF0EC">
+<meta name="description" content="Una nota reconfortante para cualquier salón. Funciona con datos o sin conexión.">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Para ti">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/icon.svg">
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;1,9..144,400;1,9..144,500&family=Atkinson+Hyperlegible:wght@400;700&family=Caveat:wght@600&display=swap');
 
@@ -32,14 +39,13 @@
     background:
       radial-gradient(60% 50% at 50% 0%, rgba(255,255,255,0.55), transparent 60%),
       linear-gradient(180deg, var(--sky-top) 0%, var(--sky-bottom) 100%);
-    font-family:'Atkinson Hyperlegible', sans-serif;
+    font-family:'Atkinson Hyperlegible', system-ui, -apple-system, 'Segoe UI', sans-serif;
     color:var(--ink);
     overflow-x:hidden;
     position:relative;
     padding:32px 18px;
   }
 
-  /* ambient light motes */
   .motes span{
     position:fixed;
     border-radius:50%;
@@ -68,7 +74,6 @@
     z-index:1;
   }
 
-  /* toggle pills */
   .toggle-row{
     display:flex;
     flex-wrap:wrap;
@@ -77,7 +82,7 @@
     margin-bottom:34px;
   }
   .toggle-pill{
-    font-family:'Atkinson Hyperlegible', sans-serif;
+    font-family:'Atkinson Hyperlegible', system-ui, -apple-system, 'Segoe UI', sans-serif;
     font-size:13.5px;
     font-weight:700;
     letter-spacing:.02em;
@@ -97,7 +102,6 @@
     color:#3A2C0F;
   }
 
-  /* note stack */
   .note-wrap{
     position:relative;
     width:100%;
@@ -134,7 +138,7 @@
     position:absolute;
     top:-16px;
     left:26px;
-    font-family:'Caveat', cursive;
+    font-family:'Caveat', 'Segoe Script', 'Comic Sans MS', cursive;
     font-size:17px;
     font-weight:600;
     color:#7A5A20;
@@ -157,7 +161,7 @@
   }
 
   .message{
-    font-family:'Fraunces', serif;
+    font-family:'Fraunces', Georgia, 'Palatino Linotype', Palatino, serif;
     font-style:italic;
     font-optical-sizing:auto;
     font-weight:450;
@@ -177,7 +181,7 @@
   }
 
   .note-foot{
-    font-family:'Atkinson Hyperlegible', sans-serif;
+    font-family:'Atkinson Hyperlegible', system-ui, -apple-system, 'Segoe UI', sans-serif;
     font-size:12.5px;
     color:var(--ink-soft);
     margin:0;
@@ -192,7 +196,7 @@
     background:transparent;
     border:1.5px solid rgba(51,66,74,0.28);
     color:var(--ink);
-    font-family:'Atkinson Hyperlegible', sans-serif;
+    font-family:'Atkinson Hyperlegible', system-ui, -apple-system, 'Segoe UI', sans-serif;
     font-weight:700;
     font-size:14.5px;
     padding:12px 22px;
@@ -220,6 +224,27 @@
     .message{ min-height:170px; }
   }
 
+  .status-chip{
+    position:fixed;
+    top:14px;
+    right:14px;
+    font-size:11px;
+    font-weight:700;
+    letter-spacing:.04em;
+    text-transform:uppercase;
+    padding:6px 10px;
+    border-radius:999px;
+    background:rgba(255,255,255,.72);
+    color:var(--ink-soft);
+    border:1px solid rgba(51,66,74,0.12);
+    opacity:0;
+    pointer-events:none;
+    transition:opacity .3s ease;
+    z-index:5;
+  }
+  .status-chip.show{ opacity:1; }
+  .status-chip.offline{ color:#5a3d12; background:rgba(227,167,59,.28); }
+
   @media (prefers-reduced-motion: reduce){
     .motes span{ animation:none; }
     .note{ animation:none; opacity:1; transform:rotate(-1.1deg); }
@@ -228,6 +253,7 @@
 </style>
 </head>
 <body>
+  <div class="status-chip" id="statusChip" hidden>Sin conexión</div>
 
   <div class="motes" aria-hidden="true">
     <span></span><span></span><span></span><span></span><span></span>
@@ -302,11 +328,6 @@
 
   let currentPool = 'general';
 
-  // Baraja por categoría: reparte los mensajes en orden aleatorio y no
-  // repite ninguno hasta haber mostrado todos; al agotarse, vuelve a
-  // barajar evitando que el primero de la nueva vuelta coincida con el
-  // último mostrado. Usa localStorage cuando está disponible (para que
-  // también recuerde al recargar la página) y cae a memoria si no.
   const storageAvailable = (() => {
     try {
       const k = '__test__';
@@ -413,9 +434,26 @@
     dateStamp.textContent = new Date().toLocaleDateString('es-ES', { day:'numeric', month:'long' });
   }catch(e){ dateStamp.remove(); }
 
-  // mensaje al entrar: siempre distinto al último que se mostró
   messageEl.textContent = nextMessage(currentPool);
   messageEl.style.opacity = 1;
+
+  const statusChip = document.getElementById('statusChip');
+  function setOnlineState(){
+    const offline = !navigator.onLine;
+    statusChip.hidden = !offline;
+    statusChip.classList.toggle('show', offline);
+    statusChip.classList.toggle('offline', offline);
+    statusChip.textContent = offline ? 'Sin conexión' : '';
+  }
+  window.addEventListener('online', setOnlineState);
+  window.addEventListener('offline', setOnlineState);
+  setOnlineState();
+
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js').catch(() => {});
+    });
+  }
 </script>
 
 </body>
